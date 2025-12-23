@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import '../constants.dart';
-import '../data/mock_database.dart';
+import '../data/mock_database.dart'; // User class is here
+
+import 'create_class_screen.dart';
+import 'join_class_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final User user;
+
+  const HomeScreen({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
-    final user = MockDatabase.currentUser;
+    // final user = MockDatabase.currentUser; // Removed static reference
 
     return Scaffold(
       appBar: AppBar(
@@ -17,6 +22,7 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
       ),
       body: SingleChildScrollView(
+        // ... existing body code ...
         child: Column(
           children: [
             Container(
@@ -82,10 +88,54 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showActionMenu(context),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  void _showActionMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+              title: const Text('Buat Kelas'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CreateClassScreen(user: user)),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sensor_door, color: AppColors.primary),
+              title: const Text('Gabung ke Kelas'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => JoinClassScreen(user: user)),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
+// ... existing _buildInfoRow implementation ...
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(

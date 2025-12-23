@@ -1,14 +1,43 @@
 import 'package:flutter/material.dart';
 import '../constants.dart';
-import '../data/mock_database.dart';
+import '../data/mock_database.dart'; // User class is here
 import 'course_detail_screen.dart';
 
 class ClassesScreen extends StatelessWidget {
-  const ClassesScreen({super.key});
+  // We need to access the current user to filter courses
+  // Since BaseScreen doesn't pass it yet, we might need to rely on MockDatabase.currentUser 
+  // IF BaseScreen isn't updated. 
+  // But our plan says BaseScreen handles it. Let's assume BaseScreen will be updated.
+  // Actually, wait, BaseScreen creates the screens in initState now.
+  // So we just need to add the field here.
+  
+  // NOTE: Ideally, we should pass the user.
+  // Since I don't want to break the build if BaseScreen isn't updated in same step, 
+  // I will check BaseScreen usage.
+  // BaseScreen calls: const ClassesScreen(), which is 0 arguments.
+  // I need to update both.
+  
+  // But wait, BaseScreen DOES have `User user` now.
+  // And it initializes `_screens` with `HomeScreen(user: widget.user)`.
+  // It currently has `const ClassesScreen()`.
+  // I will change this file to accept `user` optionally or required, 
+  // but for now I'll just change the fetching logic to use the *passed* user if possible.
+  
+  // Actually, to make it clean:
+  // 1. Update this class to accept `User user`.
+  // 2. Update `BaseScreen` to pass it.
+  
+  // Let's execute this tool on this file first.
+  
+  final User? user; // Optional for now to avoid immediate break if called without
+  
+  const ClassesScreen({super.key, this.user});
 
   @override
   Widget build(BuildContext context) {
-    final courses = MockDatabase.courses;
+    // Fallback to currentUser if null (though it shouldn't be if wired correctly)
+    final currentUser = user ?? MockDatabase.currentUser; 
+    final courses = MockDatabase.getCoursesForUser(currentUser.email);
 
     return Scaffold(
       appBar: AppBar(

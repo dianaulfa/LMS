@@ -22,6 +22,8 @@ class Course {
   final String code;
   final double progress; // 0.0 to 1.0
   final String semester;
+  final String creatorEmail;
+  final List<String> enrolledEmails;
 
   Course({
     required this.id,
@@ -29,6 +31,8 @@ class Course {
     required this.code,
     required this.progress,
     required this.semester,
+    this.creatorEmail = 'system', // Default for initial data
+    this.enrolledEmails = const [], // Default empty
   });
 }
 
@@ -85,12 +89,61 @@ class MockDatabase {
     avatarUrl: 'https://i.pravatar.cc/150?img=3',
   );
 
-  static final List<Course> courses = [
-    Course(id: 'c1', name: 'Programming Lanjut', code: 'PROG701', progress: 0.75, semester: '7'),
-    Course(id: 'c2', name: 'Cybersecurity', code: 'SEC702', progress: 0.40, semester: '7'),
-    Course(id: 'c3', name: 'Sistem Info Geografis', code: 'SIG703', progress: 0.20, semester: '7'),
-    Course(id: 'c4', name: 'Sistem Cerdas', code: 'AI704', progress: 0.10, semester: '7'),
+  // Mutable list for demo purposes
+  static List<Course> courses = [
+    Course(id: 'c1', name: 'Programming Lanjut', code: 'PROG701', progress: 0.75, semester: '7', enrolledEmails: ['mahasiswa@university.ac.id']),
+    Course(id: 'c2', name: 'Cybersecurity', code: 'SEC702', progress: 0.40, semester: '7', enrolledEmails: ['mahasiswa@university.ac.id']),
+    Course(id: 'c3', name: 'Sistem Info Geografis', code: 'SIG703', progress: 0.20, semester: '7', enrolledEmails: ['mahasiswa@university.ac.id']),
+    Course(id: 'c4', name: 'Sistem Cerdas', code: 'AI704', progress: 0.10, semester: '7', enrolledEmails: ['mahasiswa@university.ac.id']),
   ];
+
+  // ... courseMaterials and courseAssignments maps ...
+
+  // Helper to generate random 6-char code
+  static String _generateCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return List.generate(6, (index) => chars[(DateTime.now().microsecondsSinceEpoch * (index + 1)) % chars.length]).join();
+  }
+
+  static void createCourse(String name, String section, String room, String subject, String creatorEmail) {
+    final newCourse = Course(
+      id: DateTime.now().toString(),
+      name: name,
+      code: _generateCode(),
+      progress: 0.0,
+      semester: 'Genap', // Default/Derived
+      creatorEmail: creatorEmail,
+      enrolledEmails: [creatorEmail], // Creator automatically joined
+    );
+    courses.add(newCourse);
+  }
+
+  static bool joinCourse(String code, String userEmail) {
+    final index = courses.indexWhere((c) => c.code == code);
+    if (index != -1) {
+      if (!courses[index].enrolledEmails.contains(userEmail)) {
+        // Need to create new instance because fields are final (or make list mutable)
+        // Since fields are final, we replace the object with updated list
+        final old = courses[index];
+        final updated = Course(
+          id: old.id,
+          name: old.name,
+          code: old.code,
+          progress: old.progress,
+          semester: old.semester,
+          creatorEmail: old.creatorEmail,
+          enrolledEmails: [...old.enrolledEmails, userEmail],
+        );
+        courses[index] = updated;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  static List<Course> getCoursesForUser(String email) {
+    return courses.where((c) => c.enrolledEmails.contains(email)).toList();
+  }
 
   static final Map<String, List<MaterialItem>> courseMaterials = {
     'c1': [
@@ -138,6 +191,24 @@ class MockDatabase {
 
   Future<User> login(String email, String password) async {
     await Future.delayed(const Duration(seconds: 1)); // Simulate network
-    return currentUser;
+    
+    if (email == 'mahasiswa@university.ac.id') {
+      return currentUser;
+    }
+
+    // Dynamic user creation based on email
+    // e.g. "budi.santoso@uni.id" -> "Budi Santoso"
+    String name = email.split('@')[0];
+    name = name.replaceAll('.', ' ');
+    // Capitalize first letter of each word
+    name = name.split(' ').map((str) => str.isNotEmpty ? '${str[0].toUpperCase()}${str.substring(1)}' : '').join(' ');
+
+    return User(
+      name: name,
+      email: email,
+      semester: '7',
+      studentClass: 'B', // Default to B for new users
+      avatarUrl: 'https://ui-avatars.com/api/?name=$name&background=random', // Dynamic avatar
+    );
   }
 }

@@ -22,7 +22,7 @@ class NotificationsScreen extends StatelessWidget {
           final item = notifications[index];
           return ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
               child: const Icon(Icons.notifications, color: AppColors.primary),
             ),
             title: Text(

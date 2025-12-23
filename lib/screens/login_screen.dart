@@ -2,8 +2,43 @@ import 'package:flutter/material.dart';
 import '../constants.dart';
 import 'base_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+import '../data/mock_database.dart'; // Import MockDatabase
+
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() => _isLoading = true);
+    
+    // Simulate login
+    final user = await MockDatabase().login(
+      _emailController.text, 
+      _passwordController.text
+    );
+
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => BaseScreen(user: user)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +89,7 @@ class LoginScreen extends StatelessWidget {
                                    ),
                                  ),
                                  child: Container(
-                                   color: AppColors.primary.withOpacity(0.2), 
+                                   color: AppColors.primary.withValues(alpha: 0.2), 
                                  ),
                                ),
                              ),
@@ -103,6 +138,7 @@ class LoginScreen extends StatelessWidget {
                            ),
                          ),
                          TextField(
+                           controller: _emailController,
                            decoration: const InputDecoration(
                              hintText: '',
                              contentPadding: EdgeInsets.symmetric(vertical: 8),
@@ -127,6 +163,7 @@ class LoginScreen extends StatelessWidget {
                            ),
                          ),
                          TextField(
+                           controller: _passwordController,
                            obscureText: true,
                            decoration: const InputDecoration(
                              hintText: '',
@@ -148,12 +185,7 @@ class LoginScreen extends StatelessWidget {
                          SizedBox(
                            width: double.infinity,
                            child: ElevatedButton(
-                             onPressed: () {
-                                Navigator.pushReplacement(
-                                 context,
-                                 MaterialPageRoute(builder: (context) => const BaseScreen()),
-                               );
-                             },
+                             onPressed: _isLoading ? null : _handleLogin,
                              style: ElevatedButton.styleFrom(
                                backgroundColor: AppColors.primary, 
                                foregroundColor: Colors.white,
@@ -163,7 +195,9 @@ class LoginScreen extends StatelessWidget {
                                ),
                                elevation: 5,
                              ),
-                             child: const Text(
+                             child: _isLoading 
+                               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                               : const Text(
                                'Log In',
                                style: TextStyle(
                                  fontSize: 18,

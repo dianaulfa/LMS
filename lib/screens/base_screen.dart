@@ -4,8 +4,11 @@ import 'home_screen.dart';
 import 'classes_screen.dart';
 import 'notifications_screen.dart';
 
+import '../data/mock_database.dart'; // Ensure User is imported
+
 class BaseScreen extends StatefulWidget {
-  const BaseScreen({super.key});
+  final User user;
+  const BaseScreen({super.key, required this.user});
 
   @override
   State<BaseScreen> createState() => _BaseScreenState();
@@ -14,11 +17,17 @@ class BaseScreen extends StatefulWidget {
 class _BaseScreenState extends State<BaseScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const ClassesScreen(),
-    const NotificationsScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomeScreen(user: widget.user),
+      ClassesScreen(user: widget.user), // Pass the user here
+      const NotificationsScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
